@@ -93,15 +93,29 @@ Gosub, FactionMapInit
 currentTimer = 0
 
 numEnergyRuns = 0
+numEnergyWins = 0
+numEnergyLoss = 0
+
 numClanBossBattles = 0
 numSparringClicks = 0
+
 numClassicArenaBattles = 0
 numClassicArenaBattles_Won = 0
 numClassicArenaBattles_Lost = 0
+
 numTagTeamArenaBattles = 0
+numTagTeamArenaBattles_Won = 0
+numTagTeamArenaBattles_Lost = 0
+
+numClassicTokenRefresh = 0
+numTagTeamTokenRefresh = 0
+
+numDoomBattles = 0
+
 numShardsPurchased = 0
 numMysteryShards = 0
 numAncientShards = 0
+
 dailyRefresh = 0
 currentEnergy = 0
 marketYPos := [150,270,395,515,640,610]
@@ -559,8 +573,8 @@ iTagTeamInc := editIncTagTeamDiff
 ; -----------------------------------------------------------------------------------------------------
 
 ;Gosub, ClassicArenaBattle
-Gosub, TagTeamArenaBattle
-goto, FinishEnergyRun
+;Gosub, TagTeamArenaBattle
+;goto, FinishEnergyRun
 
 ; -----------------------------------------------------------
 ; SETUP ENERGY RUNS
@@ -611,14 +625,12 @@ msgBoxText =
 17 123456789 123456789 123456789 123456789 1234567890
 18 123456789 123456789 123456789 123456789 1234567890
 19 123456789 123456789 123456789 123456789 1234567890
-20 123456789 123456789 123456789 123456789 1234567890
-21 123456789 123456789 123456789 123456789 1234567890
 )
 
 currentProcessText := "MAIN LOOP       12345678901234567890"
 
 Gui, Add, Text, vBoxText x10 y10, %msgBoxText%
-Gui, Add, Button, gTickButton x10 y300, Step (F5)
+Gui, Add, Button, gTickButton x10 y270, Step (F5)
 Gui, Add, Button, gPauseButton x+10, Pause (F6)
 Gui, Add, Button, gQuitButton x+10, Stop Run (F8)
 
@@ -633,6 +645,23 @@ iRefreshCountdown_CB := 122
 iRefreshCountdown_D := dungeonStageNumEnergy[iDStageIndex] - currentEnergy
 iRefreshCountdown_SP := 5
 iRefreshCountdown_MA := 20
+
+; Setup progress report texts
+
+tClassicArena := "ON"
+if (runClassicArena == 0) {
+	tClassicArena := "OFF"
+}
+
+tTagTeamArena := "ON"
+if (runTagTeam == 0) {
+	tTagTeamArena := "OFF"
+}
+
+tClanBoss := "OFF"
+if (runClanBoss == 1) {
+	tClanBoss := "ON"
+}
 
 currentProcessText:="MAIN LOOP"
 Gosub, UpdateProgressReport
@@ -927,8 +956,6 @@ currentEnergy= %currentEnergy%
 
 dIndex= %dIndex% %dIndex_text%
 numEnergyRuns= %numEnergyRuns% (%numEnergyWins% won, %numEnergyLoss% lost) (c%iRefreshCountdown_D%)
-numArtifactsSold= %numArtifactsSold% numArtifactsKept=%numArtifactsKept%
-iCoinsMade= %iCoinsMade%K 
 
 numClassArenaBattlesRemain= %numClassArenaBattlesRemain% (%tClassicArena%)
 numClassicBattles= %numClassicArenaBattles% (%numClassicArenaBattles_Won% won, %numClassicArenaBattles_Lost% lost, d-%iClassicBattleDifficultyLevel%/%iClassicInc%) (c%iRefreshCountdown_CA%)
@@ -1079,17 +1106,21 @@ loop {
 	FormatTime, TimeString,, HH:mm
 	debugFile.Write(TimeString . "`t" . currentTimer . "`t`tEnergy " . currentEnergy)
 	
-	if (battleDuration := WaitForBattleEnd(20, 20, maxBattleTime, battleResult)) {
+	WaitForBattleEnd(20, 20, maxBattleTime, battleResult)
 		
-		if (battleResult == 1) {
+	if (battleResult > 0) {
 			
-			debugFile.WriteLine(" - VICTORY (" . currentBattleTime . " secs)")
+		numEnergyWins++
+		debugFile.WriteLine(" - VICTORY (" . currentBattleTime . " secs)")
 		
-		} else {
-			debugFile.WriteLine("- DEFEAT")
-		}
-
+	} else if (battleResult < 0) {
+			
+		numEnergyLoss++
+		debugFile.WriteLine("- DEFEAT")
+	
 	} else {
+		
+		numEnergyLoss++
 		debugFile.WriteLine("- TIMEOUT")
 	}
 	
@@ -1157,7 +1188,7 @@ loop, 14
 	RandomMouseClick(xPos, yPos, 10, 3)	; Faction select
 	
 	tGlyphText := OCRGetText(90,110, 220,132)
-	if (InStr(tGlyphText,"GLYPH")) {
+	if (pos:=InStr(tGlyphText,"GLYPH")) {
 	
 		iFStageIndex := factionStageToRun[fIndex]
 		factKeysNeeded := factionStageNumKeys[iFStageIndex]
@@ -1365,7 +1396,7 @@ RandomMouseClick(450, 350, 30, 4)	; Classic Arena Shield
 
 if (bClassic_NewTeamSet == 1) {
 	
-	MyDebugTip("bClassic_NewTeamSet")
+	;MyDebugTip("bClassic_NewTeamSet")
 	;Pause
 
 	bClassic_NewTeamSet = 0		; Toggles New Team
@@ -1379,8 +1410,19 @@ if (bClassic_NewTeamSet == 1) {
 ClassicArena_Select_Team:
 ; --------------------------------------------------------
 
-MyDebugTip("Select_Team, iClassic_Ptr: " . iClassic_Ptr . ", YPos= " . iClassicYPos)
+;MyDebugTip("Select_Team, iClassic_Ptr: " . iClassic_Ptr . ", YPos= " . iClassicYPos)
 ;Pause
+
+; ---------------------------------
+; Check for available Battle Button
+; ---------------------------------
+
+y_start := iClassicYPos - 20
+y_end := iClassicYPos + 20
+tBattleText := OCRGetText(1070,y_start, 1155,y_end)
+if (pos:=InStr(tBattleText,"Battle") == 0) {
+	goto, ClassicArena_Increment_Team
+}
 
 ; Click on next battle
 RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
@@ -1397,8 +1439,8 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 			iClassicTeamPower := Floor(iClassicTeamPower/1000)
 		}
 		
-		MyDebugTip("Opposing Power = " . iClassicTeamPower . " iDiff = " . iClassicBattleDifficultyLevel)
-		sleep, 2000
+		;MyDebugTip("Opposing Power = " . iClassicTeamPower . " iDiff = " . iClassicBattleDifficultyLevel)
+		;sleep, 2000
 		;Pause
 
 		;------------------------------
@@ -1448,14 +1490,18 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 
 		RaidCommand_Send_ESC()	; ESC button back to multi team view
 		sleep, 5000
-		
-		iClassicYPos += 115
-		iClassic_Ptr++
+
+;-----------------------------------------------------------
+ClassicArena_Increment_Team:
+;-----------------------------------------------------------
+
+iClassicYPos += 115
+iClassic_Ptr++
+
+;MyDebugTip("iClassic_Ptr++: " . iClassic_Ptr . ", numRemain: " . numClassArenaBattlesRemain)
+;Pause
 
 ;------------------------------------------------------------------------------------------------------
-
-MyDebugTip("iClassic_Ptr++: " . iClassic_Ptr . ", numRemain: " . numClassArenaBattlesRemain)
-;Pause
 
 if (iClassic_Ptr > 4) {
 	
@@ -1495,7 +1541,7 @@ if (numClassArenaBattlesRemain > 0) {
 ClassicArena_RefreshList:
 ; --------------------------------------------------------
 
-MyDebugTip("RefreshList")
+;MyDebugTip("RefreshList")
 ;Pause
 
 ; If it gets here there are no more viable teams - reset and jump out
@@ -1535,7 +1581,7 @@ RandomMouseClick(850, 300, 30, 4)		; Tag Team Arena Shield
 
 if (bTagTeam_NewTeamSet == 1) {
 
-	MyDebugTip("bTagTeam_NewTeamSet")
+	;MyDebugTip("bTagTeam_NewTeamSet")
 	;Pause
 
 	bTagTeam_NewTeamSet = 0
@@ -1549,8 +1595,19 @@ if (bTagTeam_NewTeamSet == 1) {
 TagTeamArena_Select_Team:
 ;-----------------------------------------------------------
 
-MyDebugTip("Select_Team, iTagTeam_Ptr: " . iTagTeam_Ptr . ", YPos= " . iTagTeamYPos)
+;MyDebugTip("Select_Team, iTagTeam_Ptr: " . iTagTeam_Ptr . ", YPos= " . iTagTeamYPos)
 ;Pause
+
+; ---------------------------------
+; Check for available Battle Button
+; ---------------------------------
+
+y_start := iTagTeamYPos - 20
+y_end := iTagTeamYPos + 20
+tBattleText := OCRGetText(1070,y_start, 1155,y_end)
+if (pos:=InStr(tBattleText,"Battle") == 0) {
+	goto, TagTeamArena_Increment_Team
+}
 
 RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 
@@ -1564,9 +1621,9 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 			iTagTeamTotalPower := Floor(iTagTeamTotalPower/1000)
 		}
 		
-		MyDebugTip("Opposing Power = " . iTagTeamTotalPower . " iDiff = " . iTagTeamBattleDifficultyLevel)
-		sleep, 2000
-;		Pause
+		;MyDebugTip("Opposing Power = " . iTagTeamTotalPower . " iDiff = " . iTagTeamBattleDifficultyLevel)
+		;sleep, 2000
+		;Pause
 
 		;------------------------------
 		TagTeamArena_Team_SelectBattle:
@@ -1620,14 +1677,18 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 
 		RaidCommand_Send_ESC()	; ESC button
 		sleep, 2000
-		
-		iTagTeam_Ptr++
-		iTagTeamYPos += 125
+
+;-----------------------------------------------------------
+TagTeamArena_Increment_Team:
+;-----------------------------------------------------------
+	
+iTagTeam_Ptr++
+iTagTeamYPos += 125
+
+;MyDebugTip("iTagTeam_Ptr++: " . iTagTeam_Ptr . ", numRemain: " . numTTArenaBattlesRemain)
+;Pause
 
 ;------------------------------------------------------------------------------------------------------
-
-MyDebugTip("iTagTeam_Ptr++: " . iTagTeam_Ptr . ", numRemain: " . numTTArenaBattlesRemain)
-;Pause
 
 ; Check if weve processed 4 teams
 if (iTagTeam_Ptr > 4) {
@@ -1669,7 +1730,7 @@ TagTeamArena_RefreshList:
 ; --------------------------------------------------------
 
 ; If it gets here there are no more viable teams - Refresh and jump out
-MyDebugTip("RefreshList")
+;MyDebugTip("RefreshList")
 ;Pause
 
 RandomMouseClick(1150, 175, 5, 5)		; Click Refresh List (15min cooldown)
@@ -2682,7 +2743,7 @@ OCRGetPlusNumber(ByRef x_start, ByRef y_start, ByRef x_end, ByRef y_end)
 	clipboard := ""   ; Empty the clipboard
 	RunWait, %tprogramLoc% -s "%xRaidPos_start% %yRaidPos_start% %xRaidPos_end% %yRaidPos_end%" --clipboard, , hide
 
-	iNum := -999
+	iNum = -999
 	bNumberFound = 0
 	tTextCopy := clipboard
 	
@@ -2693,7 +2754,7 @@ OCRGetPlusNumber(ByRef x_start, ByRef y_start, ByRef x_end, ByRef y_end)
 	{
 
 		tTempChar := A_LoopField
-		iNumTemp := -999
+		iNumTemp = -999
 		
 		switch A_LoopField 
 		{
