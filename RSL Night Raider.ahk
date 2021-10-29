@@ -1232,6 +1232,7 @@ loop, 14
 		maxBattleTime := factionBattleTimeMins[fIndex] * 60
 		
 		FormatTime, TimeString,, HH:mm
+		debugFile.WriteLine()
 		debugFile.WriteLine(TimeString . "`t" . currentTimer . "`tFaction War - START`t" . dFaction_text)
 
 		while (numFactBattles > 0) {
@@ -1278,7 +1279,6 @@ loop, 14
 
 ; Exit Faction War
 EscapeToMainPage()
-debugFile.WriteLine()
 
 currentProcessText:="CLICK AWAY ADS"
 Gosub, UpdateProgressReport
@@ -1299,7 +1299,7 @@ WinGetPos, X, Y, Width, Height, ahk_exe Raid.exe
 
 FormatTime, TimeString,, HH:mm
 debugFile.WriteLine()
-debugFile.WriteLine(TimeString . "`tDoom Tower")
+debugFile.Write(TimeString . "`tDoom Tower - ")
 currentProcessText:="DOOM TOWER"
 Gosub, UpdateProgressReport
 
@@ -1308,14 +1308,12 @@ sleep, 5000
 
 ; SELECT DOOM TOWER
 
-ScrollDownScreen(600,400, -8)
+ScrollDownScreen(600,400,-20)		; Use mouse wheel to scroll right
 
 RandomMouseClick(1150, 400, 10)		; Click On Doom Tower Panel
 Gosub, UpdateProgressReport
 
 sleep, 5000							; Give it time to pan up (Difficulty remains the same)
-
-; Inside Doom Tower (Process either Gold Keys OR Silver Keys)
 
 ;--------------------------------------
 ; PROCESS SILVER KEYS - BOSS BATTLES
@@ -1323,12 +1321,34 @@ sleep, 5000							; Give it time to pan up (Difficulty remains the same)
 
 if (iSilverKeys > 0) {
 	
+	; Find Doom boss Icon
+	
+	yDoomPos = 450
+	
+	loop {
+		
+		RandomMouseClick(1015, yDoomPos, 10)			; Select Location for Boss Battle
+		
+		tFloorText := OCRGetText(10,35, 460,70)
+		pos := InStr(tFloorText,"Floor")
+		yDoomPos -= 20
+	
+	} until (pos > 0 OR yDoomPos < 200)
+	
+	if (yDoomPos < 200) {
+		goto, DoomFinishBattle					; Could not find Doom Boss Battle?
+	}
+	
+	tShortString := SubStr(tFloorText,1,30)
+	debugFile.WriteLine(tShortString)			; Write out the Boss Floor and Type
+	
 	; Click on Boss, Will assume Champions are alread selected. First time will not work
-	RandomMouseClick(1015, 420, 10)			; Select Location for Boss Battle
-	RandomMouseClick(1140, 630, 10)			; Doom Tower START button (Assumes default Auto?)
+	
+	RandomMouseClick(1140, 630, 10)				; Doom Tower START button (Assumes default Auto?)
 
 StartDoomBossBattle:
 
+	iSilverKeys--
 	numDoomBattles++
 	
 	currentProcessText:="DOOM TOWER BOSS (" . numDoomBattles . ")"
@@ -1338,24 +1358,29 @@ StartDoomBossBattle:
 	FormatTime, TimeString,, HH:mm
 	debugFile.Write(TimeString . "`t")
 	
-	if (battleDuration := WaitForBattleEnd(60, 20, 540, battleResult)) {
-		if (battleResult == 1) {
-			debugFile.WriteLine("Doom Boss Battle(" . iSilverKeys . ") - VICTORY (" . battleDuration . ")")
-		} else {
+	WaitForBattleEnd(60, 20, 540, battleResult)
+	
+	if (battleResult > 0) {
+	
+		debugFile.WriteLine("Doom Boss Battle(" . iSilverKeys . ") - VICTORY (" . battleDuration . ")")
 			
-			debugFile.WriteLine("Doom Boss Battle(" . iSilverKeys . ") - DEFEAT (" . battleDuration . ")")
-			goto, DoomFinishBattle
-		}
+	} else if (battleResult < 0) {
+			
+		debugFile.WriteLine("Doom Boss Battle(" . iSilverKeys . ") - DEFEAT (" . battleDuration . ")")
+		goto, DoomFinishBattle
+			
 	} else {
+		
 		debugFile.WriteLine("Doom Boss Battle(" . iSilverKeys . ") - TIMEOUT (" . battleDuration . ")")
 		goto, DoomFinishBattle
+
 	}
 	
-	iSilverKeys--
-	
 	if (iSilverKeys > 0) {
+		
 		RaidCommand_Send_REPLAY()			; Spam r key to repeat battle
 		goto, StartDoomBossBattle
+		
 	}
 
 }
@@ -1394,6 +1419,8 @@ sleep, 5000
 RandomMouseClick(950, 370, 10, 5)	; Arena select
 RandomMouseClick(450, 350, 30, 4)	; Classic Arena Shield
 
+FormatTime, TimeString,, HH:mm
+
 if (bClassic_NewTeamSet == 1) {
 	
 	;MyDebugTip("bClassic_NewTeamSet")
@@ -1403,8 +1430,12 @@ if (bClassic_NewTeamSet == 1) {
 	bClassic_SetBattle = 0		; Has this set run a battle < max difficulty
 	iClassic_Ptr = 1			; Index of next battle 1-4, 5=finish
 	iClassicYPos = 275			; YPos of next battle: 390, 505, 620 (115 apart?)
+	
+	debugFile.WriteLine(TimeString . "`t`tInitNewSeries: Classic Arena")
 
 }
+
+debugFile.Write(TimeString . "`t`tTeam Power: ")
 
 ; --------------------------------------------------------
 ClassicArena_Select_Team:
@@ -1442,12 +1473,17 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 		;MyDebugTip("Opposing Power = " . iClassicTeamPower . " iDiff = " . iClassicBattleDifficultyLevel)
 		;sleep, 2000
 		;Pause
+		
+		debugFile.Write(iClassicTeamPower . "(" . iClassic_Ptr . "), ")
 
 		;------------------------------
 		ClassicArena_Team_Select_Battle:
 		;------------------------------
 		
 		if (iClassicTeamPower <= iClassicBattleDifficultyLevel) {
+			
+			FormatTime, TimeString,, HH:mm
+			debugFile.WriteLine()							; Close off Power(Ptr) list
 			
 			RandomMouseClick(1140, 630, 10, 10)				; Click start battle (existing selection)
 			numClassArenaBattlesRemain--
@@ -1462,16 +1498,19 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 			if (battleResult > 0) {
 					
 				MyDebugTip("Classic Arena - Victory")
+				debugFile.WriteLine(TimeString . "`t`tClassic Arena: " . iClassicTeamPower . " - Victory")
 				numClassicArenaBattles_Won++
 					
 			} else if (battleResult < 0) {
 					
 				MyDebugTip("Classic Arena - Defeat")
+				debugFile.WriteLine(TimeString . "`t`tClassic Arena " . iClassicTeamPower . " - Defeat")
 				numClassicArenaBattles_Lost++
 					
 			} else {	; Battle Timed Out
 				
 				MyDebugTip("Classic Arena - TimeOut")
+				debugFile.WriteLine(TimeString . "`t`tClassic Arena " . iClassicTeamPower . " - Timeout")
 				numClassicArenaBattles_Lost++
 				
 				RaidCommand_Send_ESC()	; ESC button
@@ -1498,6 +1537,8 @@ ClassicArena_Increment_Team:
 iClassicYPos += 115
 iClassic_Ptr++
 
+FormatTime, TimeString,, HH:mm
+
 ;MyDebugTip("iClassic_Ptr++: " . iClassic_Ptr . ", numRemain: " . numClassArenaBattlesRemain)
 ;Pause
 
@@ -1506,7 +1547,9 @@ iClassic_Ptr++
 if (iClassic_Ptr > 4) {
 	
 	if (bClassic_SetBattle == 0 AND iClassicInc > 0) {
+		debugFile.Write(TimeString . "`t`tIncrease Max Difficulty: " . iClassicBattleDifficultyLevel . " + " . iClassicInc . " = ")
 		iClassicBattleDifficultyLevel += iClassicInc	; Steadily increase difficulty
+		debugFile.WriteLine(iClassicBattleDifficultyLevel)
 	}
 	
 }
@@ -1514,11 +1557,15 @@ if (iClassic_Ptr > 4) {
 if (numClassArenaBattlesRemain > 0) {
 	
 	if (iClassic_Ptr <= 4) {
-			
+		
+		if (bClassic_SetBattle == 1) {
+			debugFile.Write(TimeString . "`t`tTeam Power: ")
+		}
 		goto, ClassicArena_Select_Team
 		
 	} else {
 		
+		debugFile.WriteLine()
 		goto, ClassicArena_RefreshList
 		
 	}
@@ -1531,6 +1578,7 @@ if (numClassArenaBattlesRemain > 0) {
 		
 	} else {
 		
+		debugFile.WriteLine()
 		goto, ClassicArena_RefreshList
 		
 	}
@@ -1544,6 +1592,8 @@ ClassicArena_RefreshList:
 ;MyDebugTip("RefreshList")
 ;Pause
 
+debugFile.WriteLine(TimeString . "`t`tClassic Arena Refresh")
+
 ; If it gets here there are no more viable teams - reset and jump out
 
 RandomMouseClick(1150, 175, 5, 5)	; Click Refresh List (15min cooldown)
@@ -1553,6 +1603,10 @@ bClassic_NewTeamSet = 1
 ; --------------------------------------------------------
 ClassicArena_BattleFinish:
 ; --------------------------------------------------------
+
+if (bClassic_SetBattle == 0) {
+	debugFile.WriteLine()
+}
 
 EscapeToMainPage()
 
@@ -1579,6 +1633,8 @@ sleep, 5000
 RandomMouseClick(950, 370, 10, 5)		; Arena select
 RandomMouseClick(850, 300, 30, 4)		; Tag Team Arena Shield
 
+FormatTime, TimeString,, HH:mm
+
 if (bTagTeam_NewTeamSet == 1) {
 
 	;MyDebugTip("bTagTeam_NewTeamSet")
@@ -1588,8 +1644,12 @@ if (bTagTeam_NewTeamSet == 1) {
 	bTagTeam_SetBattle = 0
 	iTagTeam_Ptr = 1
 	iTagTeamYPos = 270	; 395, 520, 645 (125 apart?)
+	
+	debugFile.WriteLine(TimeString . "`t`tInitNewSeries: Tag Team Arena")
 
 }
+
+debugFile.Write(TimeString . "`t`tTeam Power: ")
 
 ;-----------------------------------------------------------
 TagTeamArena_Select_Team:
@@ -1624,12 +1684,17 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 		;MyDebugTip("Opposing Power = " . iTagTeamTotalPower . " iDiff = " . iTagTeamBattleDifficultyLevel)
 		;sleep, 2000
 		;Pause
+		
+		debugFile.Write(iTagTeamTotalPower . "(" . iTagTeam_Ptr . "), ")
 
 		;------------------------------
 		TagTeamArena_Team_SelectBattle:
 		;------------------------------
 
 		if (iTagTeamTotalPower <= iTagTeamBattleDifficultyLevel) {
+			
+			debugFile.WriteLine()
+			debugFile.Write(TimeString . "`t`tTag Team Arena: " . iTagTeamTotalPower)
 
 			; Assume Auto is clicked ON
 
@@ -1646,16 +1711,19 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 			if (battleResult > 0) {
 				
 				MyDebugTip("TagTeam Arena - Victory")
+				debugFile.WriteLine(" - Victory")
 				numTagTeamArenaBattles_Won++
 				
 			} else if (battleResult < 0) {
 				
 				MyDebugTip("TagTeam Arena - Defeat")
+				debugFile.WriteLine(" - Defeat")
 				numTagTeamArenaBattles_Lost++
 				
 			} else {
 			
 				MyDebugTip("TagTeam Arena - TimeOut")
+				debugFile.WriteLine(" - TimeOut")
 				numTagTeamArenaBattles_Lost++
 				
 				RaidCommand_Send_ESC()	; ESC button, during battle
@@ -1688,13 +1756,17 @@ iTagTeamYPos += 125
 ;MyDebugTip("iTagTeam_Ptr++: " . iTagTeam_Ptr . ", numRemain: " . numTTArenaBattlesRemain)
 ;Pause
 
+FormatTime, TimeString,, HH:mm
+
 ;------------------------------------------------------------------------------------------------------
 
 ; Check if weve processed 4 teams
 if (iTagTeam_Ptr > 4) {
 	
 	if (bTagTeam_SetBattle == 0 AND iTagTeamInc > 0) {
+		debugFile.Write(TimeString . "`t`tIncrease Max Difficulty: " . iTagTeamBattleDifficultyLevel . " + " . iTagTeamInc . " = ")
 		iTagTeamBattleDifficultyLevel += iTagTeamInc	; Steadily increase difficulty
+		debugFile.WriteLine(iTagTeamBattleDifficultyLevel)
 	}
 	
 }
@@ -1702,7 +1774,10 @@ if (iTagTeam_Ptr > 4) {
 if (numTTArenaBattlesRemain > 0) {
 	
 	if (iTagTeam_Ptr <= 4) {
-			
+		
+		if (bTagTeam_SetBattle == 1) {
+			debugFile.Write(TimeString . "`t`tTeam Power: ")
+		}
 		goto, TagTeamArena_Select_Team
 		
 	} else {
@@ -1733,6 +1808,8 @@ TagTeamArena_RefreshList:
 ;MyDebugTip("RefreshList")
 ;Pause
 
+debugFile.WriteLine(TimeString . "`t`tTag Team Arena Refresh")
+
 RandomMouseClick(1150, 175, 5, 5)		; Click Refresh List (15min cooldown)
 
 bTagTeam_NewTeamSet = 1
@@ -1740,6 +1817,10 @@ bTagTeam_NewTeamSet = 1
 ; --------------------------------------------------------
 TagTeamArena_BattleFinish:
 ; --------------------------------------------------------
+
+if (bTagTeam_SetBattle == 0) {
+	debugFile.WriteLine()
+}
 
 EscapeToMainPage()
 
