@@ -1641,7 +1641,7 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 			
 			bTagTeam_SetBattle = 1
 
-			WaitForBattleEnd(90, 10, 540, battleResult)		; Check for overtime battle
+			WaitForBattleEnd(40, 10, 540, battleResult)		; Check for overtime battle
 			
 			if (battleResult > 0) {
 				
