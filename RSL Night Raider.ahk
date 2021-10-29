@@ -1366,7 +1366,7 @@ RandomMouseClick(450, 350, 30, 4)	; Classic Arena Shield
 if (bClassic_NewTeamSet == 1) {
 	
 	MyDebugTip("bClassic_NewTeamSet")
-	Pause
+	;Pause
 
 	bClassic_NewTeamSet = 0		; Toggles New Team
 	bClassic_SetBattle = 0		; Has this set run a battle < max difficulty
@@ -1380,7 +1380,7 @@ ClassicArena_Select_Team:
 ; --------------------------------------------------------
 
 MyDebugTip("Select_Team, iClassic_Ptr: " . iClassic_Ptr . ", YPos= " . iClassicYPos)
-Pause
+;Pause
 
 ; Click on next battle
 RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
@@ -1399,7 +1399,7 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 		
 		MyDebugTip("Opposing Power = " . iClassicTeamPower . " iDiff = " . iClassicBattleDifficultyLevel)
 		sleep, 2000
-		Pause
+		;Pause
 
 		;------------------------------
 		ClassicArena_Team_Select_Battle:
@@ -1455,7 +1455,7 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 ;------------------------------------------------------------------------------------------------------
 
 MyDebugTip("iClassic_Ptr++: " . iClassic_Ptr . ", numRemain: " . numClassArenaBattlesRemain)
-Pause
+;Pause
 
 if (iClassic_Ptr > 4) {
 	
@@ -1496,7 +1496,7 @@ ClassicArena_RefreshList:
 ; --------------------------------------------------------
 
 MyDebugTip("RefreshList")
-Pause
+;Pause
 
 ; If it gets here there are no more viable teams - reset and jump out
 
@@ -1536,7 +1536,7 @@ RandomMouseClick(850, 300, 30, 4)		; Tag Team Arena Shield
 if (bTagTeam_NewTeamSet == 1) {
 
 	MyDebugTip("bTagTeam_NewTeamSet")
-	Pause
+	;Pause
 
 	bTagTeam_NewTeamSet = 0
 	bTagTeam_SetBattle = 0
@@ -1550,7 +1550,7 @@ TagTeamArena_Select_Team:
 ;-----------------------------------------------------------
 
 MyDebugTip("Select_Team, iTagTeam_Ptr: " . iTagTeam_Ptr . ", YPos= " . iTagTeamYPos)
-Pause
+;Pause
 
 RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 
@@ -1566,7 +1566,7 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 		
 		MyDebugTip("Opposing Power = " . iTagTeamTotalPower . " iDiff = " . iTagTeamBattleDifficultyLevel)
 		sleep, 2000
-		Pause
+;		Pause
 
 		;------------------------------
 		TagTeamArena_Team_SelectBattle:
@@ -1627,7 +1627,7 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 ;------------------------------------------------------------------------------------------------------
 
 MyDebugTip("iTagTeam_Ptr++: " . iTagTeam_Ptr . ", numRemain: " . numTTArenaBattlesRemain)
-Pause
+;Pause
 
 ; Check if weve processed 4 teams
 if (iTagTeam_Ptr > 4) {
@@ -1670,7 +1670,7 @@ TagTeamArena_RefreshList:
 
 ; If it gets here there are no more viable teams - Refresh and jump out
 MyDebugTip("RefreshList")
-Pause
+;Pause
 
 RandomMouseClick(1150, 175, 5, 5)		; Click Refresh List (15min cooldown)
 
