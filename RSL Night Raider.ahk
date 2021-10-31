@@ -361,9 +361,6 @@ Gui, Add, Button, gSaveFactions x20 y345 w80, SAVE TO INI
 
 ;-------------------------------------------------------------------------------------------------------
 
-raidWinXPos := X + 940
-raidWinYPos := Y + 700
-
 Gui, +AlwaysOnTop
 Gui, Color, Silver
 Gui, Show, AutoSize x%raidWinXPos% y%raidWinYPos%
@@ -639,12 +636,12 @@ Gui, Color, Silver
 ; Gui, Show, w320 h330 x970 y700
 Gui, Show, AutoSize x%raidWinXPos% y%raidWinYPos%
 
-iRefreshCountdown_TT := 5
-iRefreshCountdown_CA := 5
-iRefreshCountdown_CB := 122
+iRefreshCountdown_TT = 5
+iRefreshCountdown_CA = 5
+iRefreshCountdown_CB = 122
 iRefreshCountdown_D := dungeonStageNumEnergy[iDStageIndex] - currentEnergy
-iRefreshCountdown_SP := 5
-iRefreshCountdown_MA := 20
+iRefreshCountdown_SP = 5
+iRefreshCountdown_MA = 20
 
 ; Setup progress report texts
 
@@ -1106,7 +1103,7 @@ loop {
 	FormatTime, TimeString,, HH:mm
 	debugFile.Write(TimeString . "`t" . currentTimer . "`t`tEnergy " . currentEnergy)
 	
-	WaitForBattleEnd(20, 20, maxBattleTime, battleResult)
+	currentBattleTime := WaitForBattleEnd(20, 20, maxBattleTime, battleResult)
 		
 	if (battleResult > 0) {
 			
@@ -1116,12 +1113,13 @@ loop {
 	} else if (battleResult < 0) {
 			
 		numEnergyLoss++
-		debugFile.WriteLine("- DEFEAT")
+		debugFile.WriteLine("- DEFEAT (" . currentBattleTime . " secs)")
 	
 	} else {
 		
 		numEnergyLoss++
-		debugFile.WriteLine("- TIMEOUT")
+		debugFile.WriteLine("- TIMEOUT (" . currentBattleTime . " secs)")
+		
 	}
 	
 	if (currentEnergy >= dungeonStageNumEnergy[iDStageIndex]) {
@@ -1298,7 +1296,6 @@ DoomTowerBattles:
 WinGetPos, X, Y, Width, Height, ahk_exe Raid.exe
 
 FormatTime, TimeString,, HH:mm
-debugFile.WriteLine()
 debugFile.Write(TimeString . "`tDoom Tower - ")
 currentProcessText:="DOOM TOWER"
 Gosub, UpdateProgressReport
@@ -1387,8 +1384,6 @@ StartDoomBossBattle:
 
 DoomFinishBattle:
 
-debugFile.WriteLine()
-
 currentProcessText:="MAIN LOOP"
 Gosub, UpdateProgressReport
 
@@ -1406,8 +1401,7 @@ ClassicArenaBattle:
 ;----------------------------------------------------------------------------------------------------
 
 FormatTime, TimeString,, HH:mm
-debugFile.WriteLine()
-debugFile.WriteLine(TimeString . "`t" . currentTimer . "`tClassic Arena`t" . numClassicArenaBattles)
+debugFile.WriteLine(TimeString . "`t" . currentTimer . "`tClassic Arena(" . numClassArenaBattlesRemain . " coins)")
 currentProcessText:="CLASSIC ARENA BATTLE"
 Gosub, UpdateProgressReport
 
@@ -1420,6 +1414,8 @@ RandomMouseClick(950, 370, 10, 5)	; Arena select
 RandomMouseClick(450, 350, 30, 4)	; Classic Arena Shield
 
 FormatTime, TimeString,, HH:mm
+
+bClassic_InstanceBattle = 0
 
 if (bClassic_NewTeamSet == 1) {
 	
@@ -1491,6 +1487,7 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 			
 			Gosub, UpdateProgressReport
 			
+			bClassic_InstanceBattle = 1
 			bClassic_SetBattle = 1							; Found battle within difficulty
 
 			WaitForBattleEnd(10, 10, 180, battleResult)
@@ -1520,6 +1517,11 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 				RandomMouseClick(780, 395, 10)				; Confirm Leave Battle in case neverending battle, Defeat
 			
 			}
+			
+			if (numClassArenaBattlesRemain > 0 AND iClassic_Ptr < 4) {
+				debugFile.Write(TimeString . "`t`tTeam Power: ")		; Continue line of Power values
+			}
+
 			
 		}	; End of Within difficulty match
 		
@@ -1558,14 +1560,10 @@ if (numClassArenaBattlesRemain > 0) {
 	
 	if (iClassic_Ptr <= 4) {
 		
-		if (bClassic_SetBattle == 1) {
-			debugFile.Write(TimeString . "`t`tTeam Power: ")
-		}
 		goto, ClassicArena_Select_Team
 		
 	} else {
 		
-		debugFile.WriteLine()
 		goto, ClassicArena_RefreshList
 		
 	}
@@ -1578,7 +1576,6 @@ if (numClassArenaBattlesRemain > 0) {
 		
 	} else {
 		
-		debugFile.WriteLine()
 		goto, ClassicArena_RefreshList
 		
 	}
@@ -1591,6 +1588,10 @@ ClassicArena_RefreshList:
 
 ;MyDebugTip("RefreshList")
 ;Pause
+
+if (bClassic_InstanceBattle == 0) {
+	debugFile.WriteLine()
+}
 
 debugFile.WriteLine(TimeString . "`t`tClassic Arena Refresh")
 
@@ -1622,7 +1623,7 @@ TagTeamArenaBattle:
 ;----------------------------------------------------------------------------------------------------
 
 FormatTime, TimeString,, HH:mm
-debugFile.WriteLine(TimeString . "`t" . currentTimer . "`tTag Team Arena`t" . numTagTeamArenaBattles)
+debugFile.WriteLine(TimeString . "`t" . currentTimer . "`tTag Team Arena(" . numTTArenaBattlesRemain . " coins)")
 currentProcessText:="TAG TEAM ARENA BATTLE"
 Gosub, UpdateProgressReport
 
@@ -1634,6 +1635,8 @@ RandomMouseClick(950, 370, 10, 5)		; Arena select
 RandomMouseClick(850, 300, 30, 4)		; Tag Team Arena Shield
 
 FormatTime, TimeString,, HH:mm
+
+bTagTeam_InstanceBattle = 0				; Flag for if this instance ran a battle
 
 if (bTagTeam_NewTeamSet == 1) {
 
@@ -1705,6 +1708,7 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 			Gosub, UpdateProgressReport
 			
 			bTagTeam_SetBattle = 1
+			bTagTeam_InstanceBattle = 1
 
 			WaitForBattleEnd(40, 10, 540, battleResult)		; Check for overtime battle
 			
@@ -1736,6 +1740,10 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 			
 			RaidCommand_Send_ESC()	; ESC button out of Battle Results
 			sleep, 2000
+			
+			if (numTTArenaBattlesRemain > 0 AND iTagTeam_Ptr < 4) {
+				debugFile.Write(TimeString . "`t`tTeam Power: ")
+			}
 			
 		}	; End of Within difficulty match
 
@@ -1774,10 +1782,7 @@ if (iTagTeam_Ptr > 4) {
 if (numTTArenaBattlesRemain > 0) {
 	
 	if (iTagTeam_Ptr <= 4) {
-		
-		if (bTagTeam_SetBattle == 1) {
-			debugFile.Write(TimeString . "`t`tTeam Power: ")
-		}
+
 		goto, TagTeamArena_Select_Team
 		
 	} else {
@@ -1808,6 +1813,10 @@ TagTeamArena_RefreshList:
 ;MyDebugTip("RefreshList")
 ;Pause
 
+if (bTagTeam_InstanceBattle == 0) {
+	debugFile.WriteLine()			; This will close of the Team Power String
+}
+	
 debugFile.WriteLine(TimeString . "`t`tTag Team Arena Refresh")
 
 RandomMouseClick(1150, 175, 5, 5)		; Click Refresh List (15min cooldown)
@@ -1913,7 +1922,7 @@ SparringLevelUp:
 ;----------------------------------------------------------------------------------------------------
 
 FormatTime, TimeString,, HH:mm
-debugFile.Write(TimeString . "`t" . currentTimer . "`tCheck Sparring Pit")
+debugFile.WriteLine(TimeString . "`t" . currentTimer . "`tCheck Sparring Pit")
 currentProcessText:="SPARRING LEVEL UP"
 Gosub, UpdateProgressReport
 
@@ -1925,47 +1934,47 @@ FormatTime, TimeString,, HH:mm
 
 RandomMouseClick(900, 430, 10)
 
-debugFile.WriteLine()
-
 tChampLevel := OCRGetText(55,102, 225,130)
-if (InStr(tChampLevel,"READY")) {
+if (pos:=InStr(tChampLevel,"READY")) {
 	RandomMouseClick(140, 525, 10, 4)	; Level Up!
-	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tSparring Level Up")
+	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(1)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
 
 tChampLevel := OCRGetText(302,102, 474,130)
-if (InStr(tChampLevel,"READY")) {
+if (pos:=InStr(tChampLevel,"READY")) {
 	RandomMouseClick(400, 525, 10, 4)	; Level Up!
-	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tSparring Level Up")
+	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(2)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
 
 tChampLevel := OCRGetText(555,102, 727,130)
-if (InStr(tChampLevel,"READY")) {
+if (pos:=InStr(tChampLevel,"READY")) {
 	RandomMouseClick(650, 525, 10, 4)	; Level Up!
-	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tSparring Level Up")
+	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(3)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
 
 tChampLevel := OCRGetText(806,102, 977,130)
-if (InStr(tChampLevel,"READY")) {
+if (pos:=InStr(tChampLevel,"READY")) {
 	RandomMouseClick(900, 525, 10, 4)	; Level Up!
-	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tSparring Level Up")
+	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(4)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
 
 tChampLevel := OCRGetText(1058,102, 1227,130)
-if (InStr(tChampLevel,"READY")) {
+if (pos:=InStr(tChampLevel,"READY")) {
 	RandomMouseClick(1150, 525, 10, 4)	; Level Up!
-	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tSparring Level Up")
+	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(5)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
+
+debugFile.WriteLine()
 
 ; Exit sparring pit (1 ESCAPE)
 EscapeToMainPage()
@@ -2019,7 +2028,7 @@ loop, 5 {
 		numAncientShards++
 		numShardsPurchased++
 		FormatTime, TimeString,, HH:mm
-		debugFile.WriteLine(TimeString . "`t`tAncient Shard!")		
+		debugFile.WriteLine(TimeString . "`t`tAncient Shard!")
 	
 /*	} else if (	(xPos := InStr(tHayStack,"Preacher")) OR (yPos := InStr(tHayStack,"Lurker")) OR (zPos := InStr(tHayStack,"Magekiller")) ) {
 		RandomMouseClick(435, marketYPos[iA], 5)		; Click on buy icon
@@ -2252,6 +2261,15 @@ debugFile.WriteLine()
 debugFile.WriteLine("`n" . msgBoxText . "`n")
 debugFile.Close()
 
+Gui,1:+LastFound
+WinGetPos,xPos,yPos,width,height
+
+tIniFile := A_ScriptDir . "\RSL Night Raider.ini"
+
+IniWrite, %iCalibrateLevel%, %tIniFile%, CalibrateLevel, calibrationUpToLevel
+IniWrite, %xPos%, %tIniFile%, CalibrateLevel, dialogXPos
+IniWrite, %yPos%, %tIniFile%, CalibrateLevel, dialogYPos
+
 ExitApp
 return
 
@@ -2282,6 +2300,16 @@ dungeonStageYPos		:= [999,999,999,999,999, 999,999,999,999,999, 999,999,999,999,
 dungeonStageNumEnergy	:= [8,8,8,10,10,		 10,10,12,12,12,	  12,14,14,14,14,	   14,16,16,16,16,		18,18,18,18,20]
 
 ; ------------------------------------------------------------------------------
+; WINDOW AND SCROLLING VALUES
+; ------------------------------------------------------------------------------
+
+tIniFile := A_ScriptDir . "\RSL Night Raider.ini"
+
+IniRead, iCalibrateLevel, %tIniFile%, CalibrateLevel, calibrationUpToLevel
+IniRead, raidWinXPos, %tIniFile%, CalibrateLevel, dialogXPos
+IniRead, raidWinYPos, %tIniFile%, CalibrateLevel, dialogYPos
+
+; ------------------------------------------------------------------------------
 ; DUNGEON RANKINGS
 ; ------------------------------------------------------------------------------
 
@@ -2309,15 +2337,6 @@ IniRead, iOutput, %tIniFile%, DungeonMap, dungeon_SpidersDen
 dungeonStageToRun[10] := iOutput
 IniRead, iOutput, %tIniFile%, DungeonMap, dungeon_Campaign
 dungeonStageToRun[11] := iOutput
-
-; ------------------------------------------------------------------------------
-; VARIOUS SCROLLING CALIBRATION
-; ------------------------------------------------------------------------------
-
-IniRead, iOutput, %tIniFile%, CalibrateLevel, calibrationUpToLevel
-iCalibrateLevel := iOutput
-IniRead, iOutput, %tIniFile%, CalibrateLevel, clanBossScrollValue
-iClanBossScrollVal := iOutput
 
 ; ------------------------------------------------------------------------------
 ; DUNGEON SCROLLING CALIBRATION
