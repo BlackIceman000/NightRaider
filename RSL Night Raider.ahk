@@ -79,6 +79,29 @@ OnExit, MyExitRoutine
 ; INITIALISATIONS
 ;----------------------------------------------------------------------------------------------------
 
+tIniFile := A_ScriptDir . "\RSL Night Raider.ini"
+
+IniRead, dialogWinXPos, %tIniFile%, DialogDefaults, dialogXPos
+IniRead, dialogWinYPos, %tIniFile%, DialogDefaults, dialogYPos
+IniRead, iDICBRun, %tIniFile%, DialogDefaults, dialogIntroClanBossRun
+IniRead, iDICBStage, %tIniFile%, DialogDefaults, dialogIntroClanBossStage
+IniRead, iDIFWRun, %tIniFile%, DialogDefaults, dialogIntroFactionWarsRun
+IniRead, iDIDTRun, %tIniFile%, DialogDefaults, dialogIntroDoomTowerRun
+IniRead, iDIDTSilver, %tIniFile%, DialogDefaults, dialogIntroDoomTowerSilver
+IniRead, iDLClassARun, %tIniFile%, DialogDefaults, dialogLoopClassicArenaRun
+IniRead, iDLClassADiff, %tIniFile%, DialogDefaults, dialogLoopClassicArenaDiff
+IniRead, iDLClassAInc, %tIniFile%, DialogDefaults, dialogLoopClassicArenaInc
+IniRead, iDLTTARun, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaRun
+IniRead, iDLTTADiff, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaDiff
+IniRead, iDLTTAInc, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaInc
+IniRead, iDLRefreshATokens, %tIniFile%, DialogDefaults, dialogLoopRefreshArenaTokens
+IniRead, iDLCBRun, %tIniFile%, DialogDefaults, dialogLoopClanBossRun
+IniRead, iDLCBStage, %tIniFile%, DialogDefaults, dialogLoopClanBossStage
+IniRead, iDLDCRun, %tIniFile%, DialogDefaults, dialogLoopDungeonCampaignRun
+IniRead, iDLDCIndex, %tIniFile%, DialogDefaults, dialogLoopDungeonCampaignIndex
+IniRead, iDLSPCheck, %tIniFile%, DialogDefaults, dialogLoopSparringPitCheck
+IniRead, iDLMSBuy, %tIniFile%, DialogDefaults, dialogLoopMarketShardsBuy
+
 ; -----------------------------------------------------------
 ; DUNGEON MAP INITIALISATIONS
 ; -----------------------------------------------------------
@@ -152,24 +175,39 @@ Gui, Add, GroupBox, x20 y30 w300 h100, Intro Runs
 
 ; CLAN BOSS @ START (1)
 
-Gui, Add, Checkbox, vrunClanBossStart x30 y50 gClanBossStartCheck, Run Clan Boss
-Gui, Add, DropDownList, x+5 y47 vclanBossStartIndex AltSubmit, Easy|Normal|Hard|Brutal|Nightmare|Ultra Nightmare||
-GuiControl, Disable, clanBossStartIndex
+if (iDICBRun == 0) {
+	Gui, Add, Checkbox, vrunClanBossStart x30 y50 gClanBossStartCheck, Run Clan Boss
+	Gui, Add, DropDownList, x+5 y47 vclanBossStartIndex AltSubmit Choose%iDICBStage%, Easy|Normal|Hard|Brutal|Nightmare|Ultra Nightmare|
+	GuiControl, Disable, clanBossStartIndex
+} else {
+	Gui, Add, Checkbox, vrunClanBossStart x30 y50 gClanBossStartCheck Checked, Run Clan Boss
+	Gui, Add, DropDownList, x+5 y47 vclanBossStartIndex AltSubmit Choose%iDICBStage%, Easy|Normal|Hard|Brutal|Nightmare|Ultra Nightmare|
+}
 
 ; FACTION SELECT (2)
 
-Gui, Add, Checkbox, x30 y75 vRunFactionWars, Run faction wars (ini file)
+if (iDIFWRun == 0) {
+	Gui, Add, Checkbox, x30 y75 vRunFactionWars, Run faction wars (ini file)
+} else {
+	Gui, Add, Checkbox, x30 y75 vRunFactionWars Checked, Run faction wars (ini file)
+}
 
 ; DOOM TOWER (3)
 
-Gui, Add, Checkbox, vrunDoomTower x30 y100 gDoomTowerCheck, Run Doom Tower
-
-Gui, Add, Text, vtextSilverKeys x+16 y100, Silver Keys: 
-Gui, Add, Edit, veditSilverKeys x+10 y97 w40 Limit2 Number, 10
-Gui, Add, UpDown, viSilverKeys Range0-20, 10
-GuiControl, Disable, textSilverKeys
-GuiControl, Disable, editSilverKeys
-GuiControl, Disable, iSilverKeys
+if (iDIDTRun == 0) {
+	Gui, Add, Checkbox, vrunDoomTower x30 y100 gDoomTowerCheck, Run Doom Tower
+	Gui, Add, Text, vtextSilverKeys x+16 y100, Silver Keys: 
+	Gui, Add, Edit, veditSilverKeys x+10 y97 w40 Limit2 Number, %iDIDTSilver%
+	Gui, Add, UpDown, viSilverKeys Range0-20, %iDIDTSilver%
+	GuiControl, Disable, textSilverKeys
+	GuiControl, Disable, editSilverKeys
+	GuiControl, Disable, iSilverKeys
+} else {
+	Gui, Add, Checkbox, vrunDoomTower x30 y100 gDoomTowerCheck Checked, Run Doom Tower
+	Gui, Add, Text, vtextSilverKeys x+16 y100, Silver Keys: 
+	Gui, Add, Edit, veditSilverKeys x+10 y97 w40 Limit2 Number, %iDIDTSilver%
+	Gui, Add, UpDown, viSilverKeys Range0-20, %iDIDTSilver%
+}
 
 ; ------------------------------------------------------------------------------
 
@@ -177,25 +215,58 @@ Gui, Add, GroupBox, x20 y130 w300 h195, Looping Checks
 
 ; ARENA OPTIONS
 
-Gui, Add, Checkbox, vrunClassicArena Checked x30 y150 gClassicArenaCheck, Check Classic Arena (15mins)
-Gui, Add, Text, vmaxClassDiff x+5 y150, Diff:
-Gui, Add, Edit, veditClassDiff x+5 y147 w30 Limit3 Number, 130
-Gui, Add, Text, vincClassDiff x+10 y150, Inc:
-Gui, Add, Edit, veditIncClassDiff x+3 y147 w25 Limit2 Number, 0
+if (iDLClassARun == 0) {
+	Gui, Add, Checkbox, vrunClassicArena x30 y150 gClassicArenaCheck, Check Classic Arena (15mins)
+	Gui, Add, Text, vmaxClassDiff x+5 y150, Diff:
+	Gui, Add, Edit, veditClassDiff x+5 y147 w30 Limit3 Number, %iDLClassADiff%
+	Gui, Add, Text, vincClassDiff x+10 y150, Inc:
+	Gui, Add, Edit, veditIncClassDiff x+3 y147 w25 Limit2 Number, %iDLClassAInc%
+	GuiControl, Disable, maxClassDiff
+	GuiControl, Disable, editClassDiff
+	GuiControl, Disable, incClassDiff
+	GuiControl, Disable, editIncClassDiff
+} else {
+	Gui, Add, Checkbox, vrunClassicArena Checked x30 y150 gClassicArenaCheck, Check Classic Arena (15mins)
+	Gui, Add, Text, vmaxClassDiff x+5 y150, Diff:
+	Gui, Add, Edit, veditClassDiff x+5 y147 w30 Limit3 Number, %iDLClassADiff%
+	Gui, Add, Text, vincClassDiff x+10 y150, Inc:
+	Gui, Add, Edit, veditIncClassDiff x+3 y147 w25 Limit2 Number, %iDLClassAInc%
+}
 
-Gui, Add, Checkbox, vrunTagTeam Checked x30 y175 gTagTeamArenaCheck, Check Tag Team (15mins)
-Gui, Add, Text, vmaxTagTeamDiff x+20 y175, Diff:
-Gui, Add, Edit, veditTagTeamDiff x+5 y172 w30 Limit3 Number, 300
-Gui, Add, Text, vincTagTeamDiff x+10 y175, Inc:
-Gui, Add, Edit, veditIncTagTeamDiff x+3 y172 w25 Limit3 Number, 0
+if (iDLTTARun == 0) {
+	Gui, Add, Checkbox, vrunTagTeam x30 y175 gTagTeamArenaCheck, Check Tag Team (15mins)
+	Gui, Add, Text, vmaxTagTeamDiff x+20 y175, Diff:
+	Gui, Add, Edit, veditTagTeamDiff x+5 y172 w30 Limit3 Number, %iDLTTADiff%
+	Gui, Add, Text, vincTagTeamDiff x+10 y175, Inc:
+	Gui, Add, Edit, veditIncTagTeamDiff x+3 y172 w25 Limit3 Number, %iDLTTAInc%
+	GuiControl, Disable, maxTagTeamDiff
+	GuiControl, Disable, editTagTeamDiff
+	GuiControl, Disable, incTagTeamDiff
+	GuiControl, Disable, editIncTagTeamDiff
+} else {
+	Gui, Add, Checkbox, vrunTagTeam Checked x30 y175 gTagTeamArenaCheck, Check Tag Team (15mins)
+	Gui, Add, Text, vmaxTagTeamDiff x+20 y175, Diff:
+	Gui, Add, Edit, veditTagTeamDiff x+5 y172 w30 Limit3 Number, %iDLTTADiff%
+	Gui, Add, Text, vincTagTeamDiff x+10 y175, Inc:
+	Gui, Add, Edit, veditIncTagTeamDiff x+3 y172 w25 Limit3 Number, %iDLTTAInc%
+}
 
-Gui, Add, Checkbox, vrefreshTokens x30 y200, Refresh Arena Tokens (Inbox)
+if (iDLRefreshATokens == 0) {
+	Gui, Add, Checkbox, vrefreshTokens x30 y200, Refresh Arena Tokens (Inbox)
+} else {
+	Gui, Add, Checkbox, vrefreshTokens x30 y200 Checked, Refresh Arena Tokens (Inbox)
+}
 
 ; CLAN BOSS AFTER 6hrs
 
-Gui, Add, Checkbox, vrunClanBoss x30 y225 gClanBossCheck, Check Clan Boss
-Gui, Add, DropDownList, x+5 y222 vclanBossIndex AltSubmit, Easy|Normal|Hard|Brutal|Nightmare|Ultra Nightmare||
-GuiControl, Disable, clanBossIndex
+if (iDLCBRun == 0) {
+	Gui, Add, Checkbox, vrunClanBoss x30 y225 gClanBossCheck, Check Clan Boss
+	Gui, Add, DropDownList, x+5 y222 vclanBossIndex AltSubmit Choose%iDLCBStage%, Easy|Normal|Hard|Brutal|Nightmare|Ultra Nightmare|
+	GuiControl, Disable, clanBossIndex
+} else {
+	Gui, Add, Checkbox, vrunClanBoss x30 y225 gClanBossCheck Checked, Check Clan Boss
+	Gui, Add, DropDownList, x+5 y222 vclanBossIndex AltSubmit Choose%iDLCBStage%, Easy|Normal|Hard|Brutal|Nightmare|Ultra Nightmare|
+}
 
 ; DUNGEON / CAMPAIGN SELECT
 
@@ -217,13 +288,29 @@ default: dIndex_text := "UNKNOWN"
 
 */
 
-Gui, Add, Checkbox, vbEnergyRun x30 y250, Check Dungeon/Campaign
-Gui, Add, DropDownList, x185 y247 vdIndex AltSubmit, Arcane Keep||Void Keep|Force Keep|Magic Keep|Spirit Keep|Minotaur Labyrinth|Ice Golems Peak|Dragons Lair|Fire Knights Castle|Spiders Den|Campaign - 12x3 Brutal
+if (iDLDCRun == 0) {
+	Gui, Add, Checkbox, vbEnergyRun x30 y250 gDungeonCheck, Check Dungeon/Campaign
+	Gui, Add, DropDownList, x185 y247 vdIndex AltSubmit Choose%iDLDCIndex%, Arcane Keep|Void Keep|Force Keep|Magic Keep|Spirit Keep|Minotaur Labyrinth|Ice Golems Peak|Dragons Lair|Fire Knights Castle|Spiders Den|Campaign - 12x3 Brutal
+	GuiControl, Disable, clanBossIndex
+} else {
+	Gui, Add, Checkbox, vbEnergyRun x30 y250 gDungeonCheck Checked, Check Dungeon/Campaign
+	Gui, Add, DropDownList, x185 y247 vdIndex AltSubmit Choose%iDLDCIndex%, Arcane Keep|Void Keep|Force Keep|Magic Keep|Spirit Keep|Minotaur Labyrinth|Ice Golems Peak|Dragons Lair|Fire Knights Castle|Spiders Den|Campaign - 12x3 Brutal
+
+}
 
 ; SPARRING PIT / MARKET OPTIONS
 
-Gui, Add, Checkbox, vcheckSparringPit Checked x30 y275, Check Sparring Pit (20mins)
-Gui, Add, Checkbox, vcheckMarketShards Checked x30 y300, Check Market Shards (1hr)
+if (iDLSPCheck == 0) {
+	Gui, Add, Checkbox, vcheckSparringPit x30 y275, Check Sparring Pit (20mins)
+} else {
+	Gui, Add, Checkbox, vcheckSparringPit Checked x30 y275, Check Sparring Pit (20mins)
+}
+
+if (iDLMSBuy == 0) {
+	Gui, Add, Checkbox, vcheckMarketShards x30 y300, Check Market Shards (1hr)
+} else {
+	Gui, Add, Checkbox, vcheckMarketShards Checked x30 y300, Check Market Shards (1hr)
+}
 
 ; MAIN BUTTONS
 
@@ -363,7 +450,7 @@ Gui, Add, Button, gSaveFactions x20 y345 w80, SAVE TO INI
 
 Gui, +AlwaysOnTop
 Gui, Color, Silver
-Gui, Show, AutoSize x%raidWinXPos% y%raidWinYPos%
+Gui, Show, AutoSize x%dialogWinXPos% y%dialogWinYPos%
 
 return
 
@@ -458,10 +545,49 @@ if (runTagTeam == 1) {
 return
 
 ; ------------------
+DungeonCheck:
+; ------------------
+
+Gui, Submit, NoHide
+
+if (bEnergyRun == 1) {
+	GuiControl, Enable, dIndex
+} else {
+	GuiControl, Disable, dIndex
+}
+
+return
+
+; ------------------
 OkButton: 
 ; ------------------
 
 Gui, Submit
+
+; Gui,1:+LastFound					; Is this necessary?
+WinGetPos,xPos,yPos,width,height
+
+IniWrite, %xPos%, %tIniFile%, DialogDefaults, dialogXPos
+IniWrite, %yPos%, %tIniFile%, DialogDefaults, dialogYPos
+IniWrite, %runClanBossStart%, %tIniFile%, DialogDefaults, dialogIntroClanBossRun
+IniWrite, %clanBossStartIndex%, %tIniFile%, DialogDefaults, dialogIntroClanBossStage
+IniWrite, %RunFactionWars%, %tIniFile%, DialogDefaults, dialogIntroFactionWarsRun
+IniWrite, %runDoomTower%, %tIniFile%, DialogDefaults, dialogIntroDoomTowerRun
+IniWrite, %iSilverKeys%, %tIniFile%, DialogDefaults, dialogIntroDoomTowerSilver
+IniWrite, %runClassicArena%, %tIniFile%, DialogDefaults, dialogLoopClassicArenaRun
+IniWrite, %editClassDiff%, %tIniFile%, DialogDefaults, dialogLoopClassicArenaDiff
+IniWrite, %editIncClassDiff%, %tIniFile%, DialogDefaults, dialogLoopClassicArenaInc
+IniWrite, %runTagTeam%, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaRun
+IniWrite, %editTagTeamDiff%, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaDiff
+IniWrite, %editIncTagTeamDiff%, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaInc
+IniWrite, %refreshTokens%, %tIniFile%, DialogDefaults, dialogLoopRefreshArenaTokens
+IniWrite, %runClanBoss%, %tIniFile%, DialogDefaults, dialogLoopClanBossRun
+IniWrite, %clanBossIndex%, %tIniFile%, DialogDefaults, dialogLoopClanBossStage
+IniWrite, %bEnergyRun%, %tIniFile%, DialogDefaults, dialogLoopDungeonCampaignRun
+IniWrite, %dIndex%, %tIniFile%, DialogDefaults, dialogLoopDungeonCampaignIndex
+IniWrite, %checkSparringPit%, %tIniFile%, DialogDefaults, dialogLoopSparringPitCheck
+IniWrite, %checkMarketShards%, %tIniFile%, DialogDefaults, dialogLoopMarketShardsBuy
+
 Gui, Destroy
 
 ; SET TIMER INCREMENT THREADS
@@ -508,6 +634,31 @@ return
 
 ; ------------------
 QuitButton:
+; ------------------
+
+Gui, Submit
+
+IniWrite, %xPos%, %tIniFile%, DialogDefaults, dialogXPos
+IniWrite, %yPos%, %tIniFile%, DialogDefaults, dialogYPos
+IniWrite, %runClanBossStart%, %tIniFile%, DialogDefaults, dialogIntroClanBossRun
+IniWrite, %clanBossStartIndex%, %tIniFile%, DialogDefaults, dialogIntroClanBossStage
+IniWrite, %RunFactionWars%, %tIniFile%, DialogDefaults, dialogIntroFactionWarsRun
+IniWrite, %runDoomTower%, %tIniFile%, DialogDefaults, dialogIntroDoomTowerRun
+IniWrite, %iSilverKeys%, %tIniFile%, DialogDefaults, dialogIntroDoomTowerSilver
+IniWrite, %runClassicArena%, %tIniFile%, DialogDefaults, dialogLoopClassicArenaRun
+IniWrite, %editClassDiff%, %tIniFile%, DialogDefaults, dialogLoopClassicArenaDiff
+IniWrite, %editIncClassDiff%, %tIniFile%, DialogDefaults, dialogLoopClassicArenaInc
+IniWrite, %runTagTeam%, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaRun
+IniWrite, %editTagTeamDiff%, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaDiff
+IniWrite, %editIncTagTeamDiff%, %tIniFile%, DialogDefaults, dialogLoopTagTeamArenaInc
+IniWrite, %refreshTokens%, %tIniFile%, DialogDefaults, dialogLoopRefreshArenaTokens
+IniWrite, %runClanBoss%, %tIniFile%, DialogDefaults, dialogLoopClanBossRun
+IniWrite, %clanBossIndex%, %tIniFile%, DialogDefaults, dialogLoopClanBossStage
+IniWrite, %bEnergyRun%, %tIniFile%, DialogDefaults, dialogLoopDungeonCampaignRun
+IniWrite, %dIndex%, %tIniFile%, DialogDefaults, dialogLoopDungeonCampaignIndex
+IniWrite, %checkSparringPit%, %tIniFile%, DialogDefaults, dialogLoopSparringPitCheck
+IniWrite, %checkMarketShards%, %tIniFile%, DialogDefaults, dialogLoopMarketShardsBuy
+
 GuiClose:
 F8::
 ; ------------------
@@ -634,7 +785,7 @@ Gui, Add, Button, gQuitButton x+10, Stop Run (F8)
 Gui, +AlwaysOnTop
 Gui, Color, Silver
 ; Gui, Show, w320 h330 x970 y700
-Gui, Show, AutoSize x%raidWinXPos% y%raidWinYPos%
+Gui, Show, AutoSize x%dialogWinXPos% y%dialogWinYPos%
 
 iRefreshCountdown_TT = 5
 iRefreshCountdown_CA = 5
@@ -1192,7 +1343,7 @@ loop, 14
 		factKeysNeeded := factionStageNumKeys[iFStageIndex]
 
 		; Check for enough keys
-		factNumKeys := OCRGetPlusNumber(750,40,800,70)
+		factNumKeys := OCRGetPlusNumber(710,40,800,70)
 		
 		if (factNumKeys < factKeysNeeded) {
 			RaidCommand_Send_ESC()		; ESC back to map
@@ -2266,9 +2417,8 @@ WinGetPos,xPos,yPos,width,height
 
 tIniFile := A_ScriptDir . "\RSL Night Raider.ini"
 
-IniWrite, %iCalibrateLevel%, %tIniFile%, CalibrateLevel, calibrationUpToLevel
-IniWrite, %xPos%, %tIniFile%, CalibrateLevel, dialogXPos
-IniWrite, %yPos%, %tIniFile%, CalibrateLevel, dialogYPos
+IniWrite, %xPos%, %tIniFile%, DialogDefaults, dialogXPos
+IniWrite, %yPos%, %tIniFile%, DialogDefaults, dialogYPos
 
 ExitApp
 return
@@ -2306,8 +2456,6 @@ dungeonStageNumEnergy	:= [8,8,8,10,10,		 10,10,12,12,12,	  12,14,14,14,14,	   14
 tIniFile := A_ScriptDir . "\RSL Night Raider.ini"
 
 IniRead, iCalibrateLevel, %tIniFile%, CalibrateLevel, calibrationUpToLevel
-IniRead, raidWinXPos, %tIniFile%, CalibrateLevel, dialogXPos
-IniRead, raidWinYPos, %tIniFile%, CalibrateLevel, dialogYPos
 
 ; ------------------------------------------------------------------------------
 ; DUNGEON RANKINGS
