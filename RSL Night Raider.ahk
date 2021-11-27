@@ -295,7 +295,6 @@ if (iDLDCRun == 0) {
 } else {
 	Gui, Add, Checkbox, vbEnergyRun x30 y250 gDungeonCheck Checked, Check Dungeon/Campaign
 	Gui, Add, DropDownList, x185 y247 vdIndex AltSubmit Choose%iDLDCIndex%, Arcane Keep|Void Keep|Force Keep|Magic Keep|Spirit Keep|Minotaur Labyrinth|Ice Golems Peak|Dragons Lair|Fire Knights Castle|Spiders Den|Campaign - 12x3 Brutal
-
 }
 
 ; SPARRING PIT / MARKET OPTIONS
@@ -637,6 +636,8 @@ QuitButton:
 ; ------------------
 
 Gui, Submit
+
+WinGetPos,xPos,yPos,width,height
 
 IniWrite, %xPos%, %tIniFile%, DialogDefaults, dialogXPos
 IniWrite, %yPos%, %tIniFile%, DialogDefaults, dialogYPos
@@ -1381,7 +1382,6 @@ loop, 14
 		maxBattleTime := factionBattleTimeMins[fIndex] * 60
 		
 		FormatTime, TimeString,, HH:mm
-		debugFile.WriteLine()
 		debugFile.WriteLine(TimeString . "`t" . currentTimer . "`tFaction War - START`t" . dFaction_text)
 
 		while (numFactBattles > 0) {
@@ -1534,6 +1534,8 @@ StartDoomBossBattle:
 }
 
 DoomFinishBattle:
+
+debugFile.WriteLine()
 
 currentProcessText:="MAIN LOOP"
 Gosub, UpdateProgressReport
@@ -1700,6 +1702,7 @@ FormatTime, TimeString,, HH:mm
 if (iClassic_Ptr > 4) {
 	
 	if (bClassic_SetBattle == 0 AND iClassicInc > 0) {
+		debugFile.WriteLine()
 		debugFile.Write(TimeString . "`t`tIncrease Max Difficulty: " . iClassicBattleDifficultyLevel . " + " . iClassicInc . " = ")
 		iClassicBattleDifficultyLevel += iClassicInc	; Steadily increase difficulty
 		debugFile.WriteLine(iClassicBattleDifficultyLevel)
@@ -1740,9 +1743,9 @@ ClassicArena_RefreshList:
 ;MyDebugTip("RefreshList")
 ;Pause
 
-if (bClassic_InstanceBattle == 0) {
+;if (bClassic_InstanceBattle == 0) {
 	debugFile.WriteLine()
-}
+;}
 
 debugFile.WriteLine(TimeString . "`t`tClassic Arena Refresh")
 
@@ -1756,9 +1759,9 @@ bClassic_NewTeamSet = 1
 ClassicArena_BattleFinish:
 ; --------------------------------------------------------
 
-if (bClassic_SetBattle == 0) {
+;if (bClassic_SetBattle == 0) {
 	debugFile.WriteLine()
-}
+;}
 
 EscapeToMainPage()
 
@@ -1964,9 +1967,9 @@ TagTeamArena_RefreshList:
 ;MyDebugTip("RefreshList")
 ;Pause
 
-if (bTagTeam_InstanceBattle == 0) {
+;if (bTagTeam_InstanceBattle == 0) {
 	debugFile.WriteLine()			; This will close of the Team Power String
-}
+;}
 	
 debugFile.WriteLine(TimeString . "`t`tTag Team Arena Refresh")
 
@@ -1978,9 +1981,9 @@ bTagTeam_NewTeamSet = 1
 TagTeamArena_BattleFinish:
 ; --------------------------------------------------------
 
-if (bTagTeam_SetBattle == 0) {
+;if (bTagTeam_SetBattle == 0) {
 	debugFile.WriteLine()
-}
+;}
 
 EscapeToMainPage()
 
@@ -2058,6 +2061,8 @@ loop {
 
 finishClanBossBattle:
 
+debugFile.WriteLine()
+
 ; Exit Dungeon
 EscapeToMainPage()
 
@@ -2083,43 +2088,44 @@ FormatTime, TimeString,, HH:mm
 
 ; Enter sparring pit
 
-RandomMouseClick(900, 430, 10)
+RandomMouseClick(960, 450, 10)	; Enter Guardian Ring
+RandomMouseClick(100, 140, 10)	; Select Sparring Pit
 
-tChampLevel := OCRGetText(55,102, 225,130)
-if (pos:=InStr(tChampLevel,"READY")) {
-	RandomMouseClick(140, 525, 10, 4)	; Level Up!
+tChampLevel := OCRGetText(245,100, 405,125)
+if (pos:=InStr(tChampLevel,"Ready")) {
+	RandomMouseClick(330, 535, 10, 4)	; Level Up!
 	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(1)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
 
-tChampLevel := OCRGetText(302,102, 474,130)
-if (pos:=InStr(tChampLevel,"READY")) {
-	RandomMouseClick(400, 525, 10, 4)	; Level Up!
+tChampLevel := OCRGetText(450,100, 620,125)
+if (pos:=InStr(tChampLevel,"Ready")) {
+	RandomMouseClick(545, 535, 10, 4)	; Level Up!
 	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(2)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
 
-tChampLevel := OCRGetText(555,102, 727,130)
-if (pos:=InStr(tChampLevel,"READY")) {
-	RandomMouseClick(650, 525, 10, 4)	; Level Up!
+tChampLevel := OCRGetText(660,100, 830,125)
+if (pos:=InStr(tChampLevel,"Ready")) {
+	RandomMouseClick(750, 535, 10, 4)	; Level Up!
 	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(3)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
 
-tChampLevel := OCRGetText(806,102, 977,130)
-if (pos:=InStr(tChampLevel,"READY")) {
-	RandomMouseClick(900, 525, 10, 4)	; Level Up!
+tChampLevel := OCRGetText(870,100, 1040,125)
+if (pos:=InStr(tChampLevel,"Ready")) {
+	RandomMouseClick(965, 535, 10, 4)	; Level Up!
 	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(4)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
 }
 
-tChampLevel := OCRGetText(1058,102, 1227,130)
-if (pos:=InStr(tChampLevel,"READY")) {
-	RandomMouseClick(1150, 525, 10, 4)	; Level Up!
+tChampLevel := OCRGetText(1080,100, 1250,125)
+if (pos:=InStr(tChampLevel,"Ready")) {
+	RandomMouseClick(1170, 535, 10, 4)	; Level Up!
 	debugFile.WriteLine(TimeString . "`t" . currentTimer . "`t`tLevel Up(5)")
 	numSparringClicks++
 	RandomMouseClick(25, 620, 4)		; Cancel where no level up
@@ -2303,6 +2309,8 @@ if (InStr(tHayStack,"Mystery")) {
 
 MarketEnd:
 
+debugFile.WriteLine()
+
 ; Exit Market (1 ESCAPE)
 EscapeToMainPage()
 
@@ -2341,6 +2349,8 @@ if (numTokens := FindClassicArenaTokens(FoundX,FoundY)) {
 	noClassicTokensFound = 1
 }
 
+debugFile.WriteLine()
+
 EscapeToMainPage()		; Exit Inbox (1 ESCAPE)
 return
 
@@ -2371,6 +2381,8 @@ if (numTokens := FindTagTeamArenaTokens(FoundX,FoundY)) {
 	debugFile.WriteLine(TimeString . "`tDid not find - TagTeamTokenBag")
 	noTagTeamTokensFound = 1
 }
+
+debugFile.WriteLine()
 
 EscapeToMainPage()		; Exit Inbox (1 ESCAPE)
 return
@@ -2685,7 +2697,7 @@ PanScreen(1200,560,70,560,2)
 RandomMouseClick(dungeonXpos[8], dungeonYpos[8], 5)	; Select Dragon (25 Levels)
 
 ; Confirm Level 5
-tStageText :=	OCRGetText(405,580, 510,650)	; Large Search Box 70 high, Macro increments
+tStageText :=	OCRGetText(405,570, 510,650)	; Large Search Box 70 high, Macro increments
 pos:=InStr(tStageText,"Stage 5")
 if (pos > 0) {
 	MyDebugTip("Stage 5 found")
