@@ -1613,7 +1613,7 @@ RandomMouseClick(1150, iClassicYPos, 5, 10)			; Click on Team
 		ClassicArena_Team_CheckBattleDifficulty:
 		;---------------------------------------
 
-		iClassicTeamPower := OCRGetPlusNumber(950,420, 1150,445)
+		iClassicTeamPower := OCRGetPlusNumber(950,420, 1150,445)	; 435 - Classic
 
 		if (iClassicTeamPower > 1000) {
 			iClassicTeamPower := Floor(iClassicTeamPower/1000)
@@ -1832,7 +1832,7 @@ RandomMouseClick(1150, iTagTeamYPos, 5, 10)		; Click on Team
 		TagTeamArena_Team_CheckBattleDifficulty:
 		;---------------------------------------
 
-		iTagTeamTotalPower := OCRGetPlusNumber(950,420, 1150,445)
+		iTagTeamTotalPower := OCRGetPlusNumber(1070,415, 1120,435)	; 425 - Tag Team
 		
 		if (iTagTeamTotalPower > 1000) {
 			iTagTeamTotalPower := Floor(iTagTeamTotalPower/1000)
