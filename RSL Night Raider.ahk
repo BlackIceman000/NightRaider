@@ -1496,7 +1496,6 @@ if (iSilverKeys > 0) {
 
 StartDoomBossBattle:
 
-	iSilverKeys--
 	numDoomBattles++
 	
 	currentProcessText:="DOOM TOWER BOSS (" . numDoomBattles . ")"
@@ -1510,12 +1509,13 @@ StartDoomBossBattle:
 	
 	if (battleResult > 0) {
 	
+		iSilverKeys--
 		debugFile.WriteLine("Doom Boss Battle(" . iSilverKeys . ") - VICTORY (" . battleDuration . ")")
 			
 	} else if (battleResult < 0) {
 			
 		debugFile.WriteLine("Doom Boss Battle(" . iSilverKeys . ") - DEFEAT (" . battleDuration . ")")
-		goto, DoomFinishBattle
+;		goto, DoomFinishBattle
 			
 	} else {
 		
